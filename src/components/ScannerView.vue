@@ -10,6 +10,9 @@ const isLoading = ref(false)
 const scanResult = ref(null)
 const errorMessage = ref('')
 
+// Base URL ទៅកាន់ Render Backend
+const API_BASE_URL = 'https://backend-scanvirus-2.onrender.com'
+
 const handleFileSelect = (event) => {
   const file = event.target.files[0]
   if (file) {
@@ -58,14 +61,19 @@ const executeScan = async () => {
       }
       const formData = new FormData()
       formData.append('file', selectedFile.value)
-      response = await fetch('/api/v1/scan/file', { method: 'POST', body: formData })
+      
+      // បាញ់ត្រង់ទៅ Render Backend
+      response = await fetch(`${API_BASE_URL}/api/v1/scan/file`, { 
+        method: 'POST', 
+        body: formData 
+      })
     } else if (activeTab.value === 'URL') {
       if (!inputUrl.value.trim()) {
         errorMessage.value = 'Please enter a valid URL.'
         isLoading.value = false
         return
       }
-      response = await fetch('/api/v1/scan/url', {
+      response = await fetch(`${API_BASE_URL}/api/v1/scan/url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: inputUrl.value.trim() })
@@ -76,7 +84,7 @@ const executeScan = async () => {
         isLoading.value = false
         return
       }
-      response = await fetch('/api/v1/scan/url', {
+      response = await fetch(`${API_BASE_URL}/api/v1/scan/url`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: searchKeyword.value.trim() })
@@ -86,6 +94,7 @@ const executeScan = async () => {
     if (!response.ok) throw new Error(`Status: ${response.status}`)
     scanResult.value = await response.json()
   } catch (err) {
+    console.error('API Error:', err)
     errorMessage.value = 'Scan failed. Check your backend connection.'
   } finally {
     isLoading.value = false
